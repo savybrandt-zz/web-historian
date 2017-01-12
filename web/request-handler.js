@@ -3,41 +3,44 @@ var path = require('path');
 var archive = require('../helpers/archive-helpers');
 var httpHelpers = require('./http-helpers.js');
 // require more modules/folders here!
-
+var url; 
 var defaults = httpHelpers.headers;
 
 exports.handleRequest = function (req, res) {
-
-  var statusCode;
-
+  
   if (req.method === 'GET' && req.url === '/') {
-    statusCode = 200;
-    fs.readFile('/Users/student/Desktop/hrsf53-web-historian/web/public/index.html', function (err, data) {
+    fs.readFile(archive.paths.siteAssets + '/index.html', function (err, data) {
       if (err) {
-        console.log('error!');
+        console.log('error #1');
         throw err;
-      } else {
-        data = data.toString();
-        res.writeHead(statusCode, defaults);
-        res.end(data);
-      }
+      } 
+      res.writeHead(200, defaults);
+      res.end(data);
     });
   } else if (req.method === 'GET') {
-  }
-
-  if (req.method === 'POST') {
-    statusCode = 302;
+    fs.readFile(archive.paths.archivedSites + req.url, function (err, data) {
+      if (err) {
+        console.log('error #2');
+        throw err;
+      } 
+      res.writeHead(200, defaults);
+      res.end(data);
+    });
+  } else if (req.method === 'POST') {
     req.on('data', function (data) {
-      data = data.toString().slice(4) + '\n';
-      fs.appendFile(archive.paths.list, data, function(err) {
+      url = data.toString().slice(4);
+      fs.appendFile(archive.paths.list, url + '\n', function(err) {
         if (err) {
           throw err;
         }
-        res.writeHead(statusCode, defaults);
+        res.writeHead(302, defaults);
         console.log('archive.paths.list: ', archive.paths.list);
         res.end(archive.paths.list);
       });
     });
+  } else {
+    res.writeHead(404);
+    res.end();
   }
   //res.end(archive.paths.list);
 };

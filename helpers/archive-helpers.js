@@ -9,6 +9,23 @@ var _ = require('underscore');
  * customize it in any way you wish.
  */
 
+exports.getWebsiteContent = function(url) {
+  //access archived site
+  // add '/' and data to the archived site for the correct pathway
+  var pathway = exports.paths.archivedSites + '/' + url;
+  
+  // grab the html by fs.readFile with our newly concated pathway
+  fs.readFile(pathway, function(err, data) {
+    if (err) {
+      throw err;
+    }
+    // write head of 200 and defaults
+    res.writeHead(200, defaults);
+    // return the site html
+    res.end(data); 
+  });
+};
+
 exports.paths = {
   siteAssets: path.join(__dirname, '../web/public'),
   archivedSites: path.join(__dirname, '../archives/sites'),
@@ -35,6 +52,7 @@ exports.addUrlToList = function() {
 };
 
 exports.isUrlArchived = function() {
+
 };
 
 exports.downloadUrls = function() {
