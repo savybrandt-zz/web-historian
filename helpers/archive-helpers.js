@@ -1,6 +1,8 @@
 var fs = require('fs');
 var path = require('path');
 var _ = require('underscore');
+var http = require('http');
+var request = require('request');
 
 /*
  * You will need to reuse the same paths many times over in the course of this sprint.
@@ -8,23 +10,6 @@ var _ = require('underscore');
  * if you move any files, you'll only need to change your code in one place! Feel free to
  * customize it in any way you wish.
  */
-
-exports.getWebsiteContent = function(url) {
-  //access archived site
-  // add '/' and data to the archived site for the correct pathway
-  var pathway = exports.paths.archivedSites + '/' + url;
-  
-  // grab the html by fs.readFile with our newly concated pathway
-  fs.readFile(pathway, function(err, data) {
-    if (err) {
-      throw err;
-    }
-    // write head of 200 and defaults
-    res.writeHead(200, defaults);
-    // return the site html
-    res.end(data); 
-  });
-};
 
 exports.paths = {
   siteAssets: path.join(__dirname, '../web/public'),
@@ -42,18 +27,51 @@ exports.initialize = function(pathsObj) {
 // The following function names are provided to you to suggest how you might
 // modularize your code. Keep it clean!
 
-exports.readListOfUrls = function() {
+exports.readListOfUrls = function(cb) {
+  fs.readFile(exports.paths.list, 'utf8', function (err, urls) {
+    var urlArr = urls.split('\n');
+    cb(err, urlArr);
+  });
 };
 
-exports.isUrlInList = function() {
+exports.isUrlInList = function(url, cb) {
+  exports.readListOfUrls(function(err, urlArr) {
+    if (urlArr.indexOf(url) !== -1) {
+      var exist = true;
+    } else {
+      exist = false;
+    }
+    cb(err, exist);
+  });
 };
 
-exports.addUrlToList = function() {
+exports.addUrlToList = function(url, cb) {
+  fs.appendFile(exports.paths.list, url + '\n', function(err) {
+    cb(err);
+  });
 };
 
-exports.isUrlArchived = function() {
-
+exports.isUrlArchived = function(url, cb) {
+  fs.readdir(exports.paths.archivedSites, function(err, files) {
+    if (files.indexOf(url) !== -1) {
+      var exist = true;
+    } else {
+      exist = false;
+    }
+    cb(err, exist);
+  });
 };
 
-exports.downloadUrls = function() {
+exports.downloadUrls = function(urls) {
+  // if (!Array.isArray(urls)) {
+  //   urls = [urls];
+  // } 
+
+  urls.forEach(function(url) {
+    if (!url) { return; } 
+    // console.log('Hans test:', exports.paths.archivedSites + '/' + url);
+    request('http://' + url).pipe(fs.createWriteStream(exports.paths.archivedSites + '/' + url));
+    // console.log('did it work?');
+  });
+
 };

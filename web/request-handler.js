@@ -20,28 +20,27 @@ exports.handleRequest = function (req, res) {
   } else if (req.method === 'GET') {
     fs.readFile(archive.paths.archivedSites + req.url, function (err, data) {
       if (err) {
-        console.log('error #2');
-        throw err;
-      } 
-      res.writeHead(200, defaults);
-      res.end(data);
+        res.writeHead(404, defaults);
+        res.end();
+        return;
+      } else {
+        res.writeHead(200, defaults);
+        res.end(data);        
+      }
     });
   } else if (req.method === 'POST') {
     req.on('data', function (data) {
       url = data.toString().slice(4);
-      fs.appendFile(archive.paths.list, url + '\n', function(err) {
+      archive.addUrlToList(url, function(err) {
         if (err) {
-          throw err;
+          res.writeHead(404, defaults);
+          res.end();
+          return;
         }
         res.writeHead(302, defaults);
-        console.log('archive.paths.list: ', archive.paths.list);
         res.end(archive.paths.list);
       });
     });
-  } else {
-    res.writeHead(404);
-    res.end();
-  }
-  //res.end(archive.paths.list);
+  } 
 };
 
